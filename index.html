@@ -508,8 +508,8 @@
             document.getElementById('master-merge-area').className = showMasterMerge ? "mt-4 pt-4 border-t border-emerald-900" : "hidden";
             document.getElementById('god-mode-tools').className = isGod ? "editor-section" : "hidden";
             
-            // SECURITY: Only God Mode (Role 3) sees the "Reset All Votes" button
-            document.getElementById('reset-votes-btn').style.display = (currentActiveRole === 3) ? 'inline-flex' : 'none';
+            // Show the "Reset All Votes" button to ALL admins now
+            document.getElementById('reset-votes-btn').style.display = 'inline-flex';
             
             renderAdminEditor();
             renderClassesAdmin(); 
