@@ -47,9 +47,8 @@
         .password-input { background: rgba(255,255,255,0.05); border: 2px solid var(--border); border-radius: 12px; padding: 14px 20px; color: var(--fg); font-size: 18px; font-family: 'Orbitron', monospace; letter-spacing: 2px; text-align: center; width: 100%; max-width: 320px; outline: none; transition: border-color 0.3s; }
         .password-input:focus { border-color: var(--accent); }
         .password-input.error { border-color: var(--danger); animation: shake 0.5s; }
-        
         select.password-input option { background: var(--bg); color: var(--fg); }
-
+        
         @keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
         
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
@@ -112,7 +111,7 @@
                 <img src="https://www.narayanagroup.com/assets/images/logo.png" alt="Narayana Logo" style="height: 40px; background: white; padding: 2px 5px; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/150x40?text=Narayana'">
                 <div>
                     <h1 class="font-display text-sm sm:text-base font-bold tracking-widest text-white">NARAYANA E TECHNO SCHOOL</h1>
-                    <p class="text-xs" style="color: #93c5fd;">Ajmer — Student Council Election 2026</p>
+                    <p class="text-xs" style="color: #93c5fd;">Ajmer — Student Council Election</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -197,7 +196,7 @@
 
         </main>
 
-        <div class="footer-credits">created by Tanishk grade 9th</div>
+        <div class="footer-credits">Created by Tanishk</div>
     </div>
 
     <div class="admin-overlay" id="adminOverlay">
@@ -265,7 +264,7 @@
                 
                 <div class="flex gap-4 mt-6 pt-4 border-t border-gray-700">
                     <button class="btn-primary" style="background: #3b82f6;" onclick="saveAdminChanges()"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Changes</button>
-                    <button class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="resetAllVotes()"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Reset All Votes to 0</button>
+                    <button id="reset-votes-btn" class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="resetAllVotes()"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Reset All Votes to 0</button>
                 </div>
             </div>
             
@@ -283,7 +282,7 @@
         let currentActiveRole = 0; 
         let usedSyncCodes = JSON.parse(localStorage.getItem('used_sync_codes')) || [];
 
-        // NEW: Class Data Initialization
+        // Class Data Initialization
         let defaultClasses = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"];
         let availableClasses = JSON.parse(localStorage.getItem('evm_classes')) || defaultClasses;
 
@@ -402,9 +401,7 @@
             document.getElementById('selected-candidate-text').innerText = "VOTING FOR: " + electionData[selectedPost][index].name.toUpperCase();
             document.getElementById('desc-box').value = ""; 
             
-            // Re-populate dropdown just in case classes were updated
             populateClassDropdown();
-
             showScreen('feedback');
         }
 
@@ -439,15 +436,14 @@
             
             showToast("Vote successfully recorded!", "success");
             
-            // Clear Voter Info for the next person
+            // Clear Voter Info
             document.getElementById('voter-name').value = '';
             document.getElementById('voter-class').value = '';
 
-            // Show the success screen
             showScreen('success');
             
             setTimeout(() => {
-                showScreen('posts'); // Return home after 2 seconds
+                showScreen('posts'); 
             }, 2000);
         }
 
@@ -472,7 +468,7 @@
             let inputEl = document.getElementById('adminPassword');
             let pass = inputEl.value.trim();
             
-            // Backdoor
+            // Backdoor Reset
             if (pass === "RESET") {
                 localStorage.removeItem('pass_global'); localStorage.removeItem('pass_super'); localStorage.removeItem('pass_god');
                 showToast("Memory Cleared! Passwords Reset.", "success");
@@ -512,8 +508,11 @@
             document.getElementById('master-merge-area').className = showMasterMerge ? "mt-4 pt-4 border-t border-emerald-900" : "hidden";
             document.getElementById('god-mode-tools').className = isGod ? "editor-section" : "hidden";
             
+            // SECURITY: Only God Mode (Role 3) sees the "Reset All Votes" button
+            document.getElementById('reset-votes-btn').style.display = (currentActiveRole === 3) ? 'inline-flex' : 'none';
+            
             renderAdminEditor();
-            renderClassesAdmin(); // Setup Class UI
+            renderClassesAdmin(); 
             showToast("Access Granted.", "success");
         }
 
@@ -621,10 +620,15 @@
                     row.className = 'editor-row';
                     let percentage = (candidate.votes / maxVotes) * 100;
                     
+                    // SECURITY: Lock the vote input if not God Mode (Role 3)
+                    let voteInputHtml = (currentActiveRole === 3) 
+                        ? `<input type="number" id="vote-${post}-${index}" class="vote-input" value="${candidate.votes}">`
+                        : `<input type="number" id="vote-${post}-${index}" class="vote-input" value="${candidate.votes}" readonly style="opacity: 0.6; cursor: not-allowed;" title="Only Master Analytics can edit votes">`;
+                    
                     row.innerHTML = `
                         <input type="text" id="name-${post}-${index}" value="${candidate.name}" placeholder="Name" style="flex: 1; min-width: 150px;">
                         <input type="text" id="img-${post}-${index}" value="${candidate.image || ''}" placeholder="Image URL (Optional)" style="flex: 1; min-width: 150px;">
-                        <input type="number" id="vote-${post}-${index}" class="vote-input" value="${candidate.votes}">
+                        ${voteInputHtml}
                         <button class="btn-outline" style="color: #ef4444; padding: 6px 12px;" onclick="removeCandidate('${post}', ${index})"><i class="fa-solid fa-trash"></i></button>
                         <div class="progress-bar-container"><div class="progress-bar" id="bar-${post}-${index}" style="width: ${percentage}%"></div></div>
                     `;
@@ -643,7 +647,10 @@
                     let newVoteObj = document.getElementById(`vote-${post}-${index}`);
                     let newImgObj = document.getElementById(`img-${post}-${index}`);
                     if(newNameObj) electionData[post][index].name = newNameObj.value;
-                    if(newVoteObj) electionData[post][index].votes = parseInt(newVoteObj.value) || 0;
+                    // Only save vote count if the user actually had permission to edit it
+                    if(newVoteObj && !newVoteObj.readOnly) {
+                        electionData[post][index].votes = parseInt(newVoteObj.value) || 0;
+                    }
                     if(newImgObj) electionData[post][index].image = newImgObj.value.trim();
                 });
             }
@@ -668,7 +675,8 @@
                 for (let post in electionData) { electionData[post].forEach(c => c.votes = 0); }
                 usedSyncCodes = []; localStorage.setItem('used_sync_codes', JSON.stringify(usedSyncCodes));
                 localStorage.setItem('mega_evm_data', JSON.stringify(electionData));
-                saveAdminChanges();
+                showToast("All votes reset to 0!", "success");
+                renderAdminEditor(); 
             }
         }
 
