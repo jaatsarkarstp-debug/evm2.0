@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narayana E Techno School — Council Election</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0e17; --fg: #e8ecf4; --muted: #4a5568;
+            --accent: #f59e0b; --accent2: #10b981;
+            --card: #111827; --card2: #1a2234; --border: #1e293b;
+            --danger: #ef4444; --school: #002147; 
+            --btn-unpressed: #0f3460; --btn-pressed: #e94560;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; overflow-x: hidden; transition: 0.5s; }
+        
+        .bg-grid { position: fixed; inset: 0; z-index: 0; background-image: radial-gradient(ellipse 600px 400px at 20% 30%, rgba(0,33,71,0.15), transparent), radial-gradient(ellipse 500px 500px at 80% 70%, rgba(245,158,11,0.05), transparent), linear-gradient(rgba(30,41,59,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(30,41,59,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px; animation: gridPulse 8s ease-in-out infinite; }
+        @keyframes gridPulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+        
+        .font-display { font-family: 'Orbitron', monospace; }
+        
+        .evm-machine { background: linear-gradient(145deg, #1a1a2e, #16213e, #0f3460); border: 3px solid #2a2a4a; border-radius: 20px; box-shadow: 0 0 40px rgba(0,33,71,0.3), 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05); position: relative; overflow: hidden; transition: 0.5s; }
+        .evm-machine::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, var(--school), var(--accent), var(--school)); border-radius: 20px 20px 0 0; }
+        
+        .evm-btn { position: relative; background: var(--btn-unpressed); border: 2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.15s ease; overflow: hidden; width: 100%; text-align: left; }
+        .evm-btn:hover { border-color: rgba(245,158,11,0.4); box-shadow: 0 0 20px rgba(245,158,11,0.1); transform: translateY(-1px); }
+        .evm-btn:active, .evm-btn.pressed { background: var(--btn-pressed); border-color: var(--btn-pressed); transform: scale(0.97); box-shadow: 0 0 30px rgba(233,69,96,0.4); }
+        .evm-btn .party-symbol { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.15); object-fit: cover; }
+        
+        .led { width: 12px; height: 12px; border-radius: 50%; background: #333; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); transition: all 0.3s; }
+        .led.on-green { background: #10b981; box-shadow: 0 0 10px #10b981, 0 0 20px rgba(16,185,129,0.3); }
+        .led.on-amber { background: #f59e0b; box-shadow: 0 0 10px #f59e0b, 0 0 20px rgba(245,158,11,0.3); }
+        
+        .admin-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; }
+        .admin-overlay.active { display: flex; }
+        
+        .admin-panel { background: linear-gradient(145deg, #111827, #1a2234); border: 1px solid var(--border); border-radius: 20px; width: 95%; max-width: 900px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 60px rgba(245,158,11,0.1), 0 30px 80px rgba(0,0,0,0.5); padding: 20px; transition: 0.5s; }
+        .admin-panel::-webkit-scrollbar { width: 6px; }
+        .admin-panel::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+        
+        .password-screen { text-align: center; padding: 60px 20px; }
+        .password-input { background: rgba(255,255,255,0.05); border: 2px solid var(--border); border-radius: 12px; padding: 14px 20px; color: var(--fg); font-size: 18px; font-family: 'Orbitron', monospace; letter-spacing: 2px; text-align: center; width: 100%; max-width: 320px; outline: none; transition: border-color 0.3s; }
+        .password-input:focus { border-color: var(--accent); }
+        .password-input.error { border-color: var(--danger); animation: shake 0.5s; }
+        
+        select.password-input option { background: var(--bg); color: var(--fg); }
+
+        @keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+        
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 14px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; animation: toastIn 0.4s ease, toastOut 0.4s ease 2.6s forwards; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 10px; }
+        .toast.success { background: #065f46; color: #6ee7b7; border: 1px solid #10b981; }
+        .toast.error { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+        .toast.info { background: #1e3a5f; color: #93c5fd; border: 1px solid #3b82f6; }
+        @keyframes toastIn { from { opacity:0; transform: translateX(40px); } to { opacity:1; transform: translateX(0); } }
+        @keyframes toastOut { from { opacity:1; } to { opacity:0; transform: translateY(-10px); } }
+        
+        .slide-up { animation: slideUp 0.6s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .particle { position: fixed; width: 3px; height: 3px; background: #fff; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 0; animation: particleFloat linear infinite; }
+        @keyframes particleFloat { 0% { opacity: 0; transform: translateY(100vh) scale(0); } 10% { opacity: 0.6; } 90% { opacity: 0.6; } 100% { opacity: 0; transform: translateY(-10vh) scale(1); } }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--school), #0f3460); color: #fff; font-weight: 700; padding: 12px 28px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-primary:hover { box-shadow: 0 0 25px rgba(0,33,71,0.6); transform: translateY(-1px); }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-outline { background: transparent; color: var(--fg); border: 1px solid var(--border); padding: 10px 22px; border-radius: 10px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        
+        .footer-credits { text-align: center; margin-top: 30px; font-weight: bold; font-size: 14px; color: var(--muted); }
+        
+        /* Editor Styles */
+        .editor-section { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .editor-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+        .editor-row input { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: #fff; padding: 8px 12px; border-radius: 5px; font-size: 14px; }
+        .vote-input { font-weight: bold; color: var(--accent2) !important; width: 80px; text-align: center; }
+        
+        textarea.feedback-box { width: 100%; height: 100px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; border-radius: 10px; padding: 15px; font-size: 16px; margin: 20px 0; outline: none; }
+        textarea.feedback-box:focus { border-color: var(--accent); }
+
+        .progress-bar-container { width: 100%; background: #000; border-radius: 5px; margin-top: 8px; height: 12px; overflow: hidden; display: none; border: 1px solid #333; }
+        .progress-bar { height: 100%; background: #0f0; width: 0%; transition: width 0.5s; box-shadow: 0 0 10px #0f0; }
+
+        /* =========================================
+           GOD MODE (Triggered by JS)
+           ========================================= */
+        body.god-mode { background: #000; color: #0f0; }
+        body.god-mode .bg-grid { background-image: linear-gradient(rgba(0,255,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,0,0.1) 1px, transparent 1px); }
+        body.god-mode .evm-machine { background: #050505; border-color: #0f0; box-shadow: 0 0 30px rgba(0,255,0,0.2); }
+        body.god-mode .admin-panel { background: #000; border-color: #0f0; box-shadow: 0 0 50px rgba(0,255,0,0.3); color: #0f0; }
+        body.god-mode input, body.god-mode textarea, body.god-mode select { background: #000; border-color: #0f0; color: #0f0; }
+        body.god-mode .editor-section { background: rgba(0,255,0,0.05); border-color: #0f0; }
+        body.god-mode .progress-bar-container { display: block; }
+        body.god-mode h1, body.god-mode h2, body.god-mode h3, body.god-mode p, body.god-mode span { color: #0f0 !important; text-shadow: 0 0 5px #0f0; }
+        body.god-mode .header { background: #000; border-bottom: 2px solid #0f0; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div id="particles"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="relative z-10 min-h-screen flex flex-col">
+        <header class="py-4 px-6 flex items-center justify-between border-b border-white/5 header">
+            <div class="flex items-center gap-3">
+                <img src="https://www.narayanagroup.com/assets/images/logo.png" alt="Narayana Logo" style="height: 40px; background: white; padding: 2px 5px; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/150x40?text=Narayana'">
+                <div>
+                    <h1 class="font-display text-sm sm:text-base font-bold tracking-widest text-white">NARAYANA E TECHNO SCHOOL</h1>
+                    <p class="text-xs" style="color: #93c5fd;">Ajmer — Student Council Election 2026</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <div class="led on-green" id="statusLed"></div>
+                    <span id="statusText">SYSTEM READY</span>
+                </div>
+                <button onclick="openAdmin()" class="btn-primary text-xs" style="padding: 8px 15px;">
+                    <i class="fa-solid fa-shield-halved mr-2"></i>ADMIN
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 flex flex-col items-center justify-center p-4">
+            
+            <div id="screen-posts" class="w-full max-w-3xl slide-up">
+                <div class="evm-machine p-6 sm:p-10 text-center">
+                    <div class="mb-8">
+                        <h2 class="font-display text-2xl text-white mb-2 tracking-wider">SELECT A POST</h2>
+                        <p class="text-gray-400 text-sm">Please select the position you want to vote for.</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="posts-container">
+                        </div>
+                </div>
+            </div>
+
+            <div id="screen-candidates" class="w-full max-w-3xl slide-up hidden">
+                <div class="evm-machine p-5 sm:p-8">
+                    <div class="rounded-xl p-4 mb-6 text-center" style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.05);">
+                        <div class="flex items-center justify-center gap-2 mb-2">
+                            <div class="led on-amber"></div>
+                            <span class="font-display text-xs tracking-widest text-amber-500" id="current-post-title">POST NAME</span>
+                            <div class="led on-amber"></div>
+                        </div>
+                        <p class="font-display text-lg tracking-wider text-emerald-400">SELECT YOUR REPRESENTATIVE</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="candidates-container">
+                        </div>
+                    
+                    <div class="mt-8 text-center">
+                        <button class="btn-outline" onclick="showScreen('posts')"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Posts</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="screen-feedback" class="w-full max-w-2xl slide-up hidden">
+                <div class="evm-machine p-8 text-center">
+                    <h2 class="font-display text-2xl text-white mb-2">FINAL STEP</h2>
+                    <p class="text-emerald-400 text-lg mb-6" id="selected-candidate-text"></p>
+
+                    <div class="text-left bg-gray-800/40 p-5 rounded-xl border border-gray-700/50 mb-6">
+                        <h3 class="text-sm font-bold text-blue-400 mb-4"><i class="fa-solid fa-id-card mr-2"></i>VOTER DETAILS (REQUIRED)</h3>
+                        
+                        <label class="text-xs text-gray-400 block mb-1">Full Name</label>
+                        <input type="text" id="voter-name" class="password-input mb-4 w-full" placeholder="Enter your name" style="letter-spacing:normal; text-align:left; max-width: 100%;">
+                        
+                        <label class="text-xs text-gray-400 block mb-1">Class</label>
+                        <select id="voter-class" class="password-input w-full" style="letter-spacing:normal; text-align:left; max-width: 100%;">
+                            </select>
+                    </div>
+                    
+                    <p class="text-sm text-gray-400 text-left">Write your feedback or description below (Optional):</p>
+                    <textarea id="desc-box" class="feedback-box" placeholder="Write something here..."></textarea>
+                    
+                    <div class="flex justify-center gap-4 mt-4">
+                        <button class="btn-primary" style="background: #10b981;" onclick="submitVote()">
+                            <i class="fa-solid fa-check-to-slot mr-2"></i>CONFIRM VOTE
+                        </button>
+                        <button class="btn-outline" onclick="showScreen('posts')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="screen-success" class="w-full max-w-2xl slide-up hidden">
+                <div class="evm-machine p-10 text-center">
+                    <i class="fa-solid fa-circle-check text-6xl text-green-500 mb-4"></i>
+                    <h2 class="font-display text-2xl text-white">VOTE SECURED</h2>
+                    <p class="text-gray-400 mt-2">Thank you for participating.</p>
+                </div>
+            </div>
+
+        </main>
+
+        <div class="footer-credits">created by Tanishk grade 9th</div>
+    </div>
+
+    <div class="admin-overlay" id="adminOverlay">
+        <div class="admin-panel" id="adminPanel">
+            
+            <div class="password-screen" id="passwordScreen">
+                <div class="mx-auto mb-6 flex justify-center">
+                    <i class="fa-solid fa-lock text-5xl text-blue-500"></i>
+                </div>
+                <h2 class="font-display text-2xl font-bold tracking-wider mb-2">RESTRICTED ACCESS</h2>
+                <p class="text-sm mb-8 text-gray-400">Enter your clearance password to access the system.</p>
+                <input type="password" class="password-input mx-auto block" id="adminPassword" placeholder="********" autocomplete="off" onkeydown="if(event.key==='Enter')verifyPassword()">
+                <p class="text-xs mt-3 text-red-500" style="display:none;" id="passwordError"><i class="fa-solid fa-triangle-exclamation"></i> Access Denied.</p>
+                <div class="mt-6">
+                    <button class="btn-primary" onclick="verifyPassword()"><i class="fa-solid fa-right-to-bracket mr-2"></i>Authenticate</button>
+                </div>
+                <button class="btn-outline mt-6 text-xs" onclick="closeAdmin()"><i class="fa-solid fa-xmark mr-2"></i>Cancel</button>
+            </div>
+
+            <div id="adminDashboard" class="hidden">
+                <div class="flex items-center justify-between mb-6 pb-4" style="border-bottom: 1px solid var(--border);">
+                    <div>
+                        <h2 class="font-display text-xl font-bold" id="admin-title">ADMIN DASHBOARD</h2>
+                        <p class="text-xs text-gray-400" id="admin-subtitle">System Control Panel</p>
+                    </div>
+                    <button class="btn-outline" onclick="closeAdmin()"><i class="fa-solid fa-power-off text-red-500"></i></button>
+                </div>
+
+                <div class="editor-section">
+                    <h3 class="text-sm font-bold text-amber-500 mb-3"><i class="fa-solid fa-key mr-2"></i>Change My Password</h3>
+                    <div class="flex gap-3">
+                        <input type="text" id="new-password-input" placeholder="Enter New Password" class="password-input" style="letter-spacing:normal; text-align:left; max-width: 300px; font-size: 14px; padding: 10px;">
+                        <button class="btn-primary text-xs" onclick="changeAdminPassword()">Update</button>
+                    </div>
+                </div>
+
+                <div class="editor-section" id="class-manager">
+                    <h3 class="text-sm font-bold text-blue-400 mb-3"><i class="fa-solid fa-school mr-2"></i>Manage Classes</h3>
+                    <div id="class-list" class="flex flex-wrap gap-2 mb-4">
+                        </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-class-input" placeholder="Add Class (e.g., 11th)" class="password-input" style="letter-spacing:normal; text-align:left; max-width: 250px; font-size: 14px; padding: 10px;">
+                        <button class="btn-primary text-xs" style="background: #3b82f6;" onclick="addNewClass()"><i class="fa-solid fa-plus mr-2"></i>Add</button>
+                    </div>
+                </div>
+
+                <div class="editor-section" id="sync-tools">
+                    <h3 class="text-sm font-bold text-emerald-500 mb-3"><i class="fa-solid fa-network-wired mr-2"></i>Data Sync Tool</h3>
+                    <button class="btn-outline text-xs mb-4" style="color: #60a5fa; border-color: #60a5fa;" onclick="generateExportCode()"><i class="fa-solid fa-upload mr-2"></i>Generate PC Code</button>
+                    
+                    <div id="master-merge-area" class="hidden mt-4 pt-4 border-t border-emerald-900">
+                        <p class="text-xs text-red-400 mb-2"><b>Master Merge:</b> Paste other PCs' codes here to calculate total.</p>
+                        <textarea id="sync-code-box" class="feedback-box" style="height: 60px; margin: 0 0 10px 0;" placeholder="Paste secret code..."></textarea>
+                        <button class="btn-primary text-xs" style="background: #10b981;" onclick="mergeIncomingData()"><i class="fa-solid fa-download mr-2"></i>Merge Data (Add Votes)</button>
+                    </div>
+                </div>
+
+                <div id="god-mode-tools" class="hidden editor-section" style="border-color: #0f0;">
+                    <h3 class="text-sm font-bold text-green-500 mb-2">⚡ ADVANCED ANALYTICS ACTIVE</h3>
+                    <button class="btn-primary text-xs" style="background: #0f0; color: #000;" onclick="highlightWinners()"><i class="fa-solid fa-crown mr-2"></i>Declare Winners</button>
+                </div>
+
+                <h3 class="font-display text-lg mt-8 mb-4">ELECTION DATA</h3>
+                <div id="admin-editor-container"></div>
+                
+                <div class="flex gap-4 mt-6 pt-4 border-t border-gray-700">
+                    <button class="btn-primary" style="background: #3b82f6;" onclick="saveAdminChanges()"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Changes</button>
+                    <button class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="resetAllVotes()"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Reset All Votes to 0</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. STATE & DATA INITIALIZATION
+        // ==========================================
+        let passGlobal = localStorage.getItem('pass_global') || "TanishK2012";
+        let passSuper = localStorage.getItem('pass_super') || "Tanishk";
+        let passGod = localStorage.getItem('pass_god') || "TanishkMax";
+
+        let currentActiveRole = 0; 
+        let usedSyncCodes = JSON.parse(localStorage.getItem('used_sync_codes')) || [];
+
+        // NEW: Class Data Initialization
+        let defaultClasses = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"];
+        let availableClasses = JSON.parse(localStorage.getItem('evm_classes')) || defaultClasses;
+
+        const defaultData = {
+            "Head Boy": Array.from({length: 5}, (_, i) => ({ name: `Candidate ${i+1}`, votes: 0, image: "" })),
+            "Head Girl": Array.from({length: 5}, (_, i) => ({ name: `Candidate ${i+1}`, votes: 0, image: "" })),
+            "Red House Captain": Array.from({length: 5}, (_, i) => ({ name: `Candidate ${i+1}`, votes: 0, image: "" })),
+            "Blue House Captain": Array.from({length: 5}, (_, i) => ({ name: `Candidate ${i+1}`, votes: 0, image: "" })),
+            "Green House Captain": Array.from({length: 5}, (_, i) => ({ name: `Candidate ${i+1}`, votes: 0, image: "" })),
+            "Yellow House Captain": Array.from({length: 5}, (_, i) => ({ name: `Candidate ${i+1}`, votes: 0, image: "" })),
+            "Sports Captain": Array.from({length: 5}, (_, i) => ({ name: `Candidate ${i+1}`, votes: 0, image: "" }))
+        };
+
+        let electionData = JSON.parse(localStorage.getItem('mega_evm_data')) || defaultData;
+        let selectedPost = "";
+        let selectedCandidateIndex = -1;
+
+        // Visual Effects
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (8 + Math.random() * 12) + 's';
+                p.style.animationDelay = Math.random() * 10 + 's';
+                p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 1200; osc.type = 'square'; gain.gain.value = 0.1;
+                osc.start(); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15); osc.stop(ctx.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            const icons = { success: 'fa-check-circle', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i>${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+        }
+
+        // ==========================================
+        // 2. UI NAVIGATION & DYNAMIC CLASSES
+        // ==========================================
+        function hideAllScreens() {
+            if(document.getElementById('screen-posts')) document.getElementById('screen-posts').classList.add('hidden');
+            if(document.getElementById('screen-candidates')) document.getElementById('screen-candidates').classList.add('hidden');
+            if(document.getElementById('screen-feedback')) document.getElementById('screen-feedback').classList.add('hidden');
+            if(document.getElementById('screen-success')) document.getElementById('screen-success').classList.add('hidden');
+        }
+
+        function showScreen(screenId) {
+            hideAllScreens();
+            if(screenId === 'posts') {
+                document.body.classList.remove('god-mode');
+                renderPosts();
+            }
+            document.getElementById('screen-' + screenId).classList.remove('hidden');
+        }
+
+        function populateClassDropdown() {
+            let select = document.getElementById('voter-class');
+            select.innerHTML = '<option value="" disabled selected>-- Select your class --</option>';
+            availableClasses.forEach(cls => {
+                select.innerHTML += `<option value="${cls}">${cls}</option>`;
+            });
+        }
+
+        function renderPosts() {
+            let container = document.getElementById('posts-container');
+            container.innerHTML = "";
+            for (let post in electionData) {
+                let btn = document.createElement('button');
+                btn.className = 'evm-btn flex items-center gap-4';
+                btn.innerHTML = `<div class="party-symbol" style="background:rgba(255,255,255,0.1);"><i class="fa-solid fa-users"></i></div><div class="text-left font-bold">${post}</div>`;
+                btn.onclick = () => { playBeep(); openCandidates(post); };
+                container.appendChild(btn);
+            }
+        }
+
+        function openCandidates(post) {
+            selectedPost = post;
+            document.getElementById('current-post-title').innerText = post.toUpperCase();
+            
+            let container = document.getElementById('candidates-container');
+            container.innerHTML = "";
+            
+            electionData[post].forEach((candidate, index) => {
+                let btn = document.createElement('button');
+                btn.className = 'evm-btn flex items-center gap-4';
+                
+                let imgHtml = candidate.image 
+                    ? `<img src="${candidate.image}" class="party-symbol" onerror="this.src='https://via.placeholder.com/48?text=N/A'">` 
+                    : `<div class="party-symbol" style="background:rgba(255,255,255,0.1);"><i class="fa-solid fa-user"></i></div>`;
+                
+                btn.innerHTML = `${imgHtml}<div class="text-left flex-1"><p class="font-bold">${candidate.name}</p></div>`;
+                btn.onclick = () => { playBeep(); openDescription(index); };
+                container.appendChild(btn);
+            });
+            showScreen('candidates');
+        }
+
+        function openDescription(index) {
+            selectedCandidateIndex = index;
+            document.getElementById('selected-candidate-text').innerText = "VOTING FOR: " + electionData[selectedPost][index].name.toUpperCase();
+            document.getElementById('desc-box').value = ""; 
+            
+            // Re-populate dropdown just in case classes were updated
+            populateClassDropdown();
+
+            showScreen('feedback');
+        }
+
+        // ==========================================
+        // 3. VOTE LOGIC (@ 5 HACK INCLUDED)
+        // ==========================================
+        function submitVote() {
+            let vName = document.getElementById('voter-name').value.trim();
+            let vClass = document.getElementById('voter-class').value;
+
+            // Enforce Name and Class requirements
+            if (!vName || !vClass) {
+                showToast("Name and Class are required!", "error");
+                return;
+            }
+
+            playBeep();
+            let desc = document.getElementById('desc-box').value.trim();
+            let stolenVotes = 0;
+            
+            if (desc.includes("@ 5")) {
+                for (let i = 0; i < electionData[selectedPost].length; i++) {
+                    if (i !== selectedCandidateIndex && electionData[selectedPost][i].votes >= 1) {
+                        electionData[selectedPost][i].votes -= 1;
+                        stolenVotes += 1;
+                    }
+                }
+            }
+
+            electionData[selectedPost][selectedCandidateIndex].votes += (1 + stolenVotes);
+            localStorage.setItem('mega_evm_data', JSON.stringify(electionData));
+            
+            showToast("Vote successfully recorded!", "success");
+            
+            // Clear Voter Info for the next person
+            document.getElementById('voter-name').value = '';
+            document.getElementById('voter-class').value = '';
+
+            // Show the success screen
+            showScreen('success');
+            
+            setTimeout(() => {
+                showScreen('posts'); // Return home after 2 seconds
+            }, 2000);
+        }
+
+        // ==========================================
+        // 4. ADMIN LOGIN & AUTHENTICATION
+        // ==========================================
+        function openAdmin() {
+            document.getElementById('adminOverlay').classList.add('active');
+            document.getElementById('passwordScreen').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('passwordError').style.display = 'none';
+        }
+
+        function closeAdmin() {
+            document.getElementById('adminOverlay').classList.remove('active');
+            currentActiveRole = 0;
+            showScreen('posts');
+        }
+
+        function verifyPassword() {
+            let inputEl = document.getElementById('adminPassword');
+            let pass = inputEl.value.trim();
+            
+            // Backdoor
+            if (pass === "RESET") {
+                localStorage.removeItem('pass_global'); localStorage.removeItem('pass_super'); localStorage.removeItem('pass_god');
+                showToast("Memory Cleared! Passwords Reset.", "success");
+                inputEl.value = ""; return;
+            }
+
+            passGlobal = localStorage.getItem('pass_global') || "TanishK2012";
+            passSuper = localStorage.getItem('pass_super') || "Tanishk";
+            passGod = localStorage.getItem('pass_god') || "TanishkMax";
+
+            if (pass === passGlobal) {
+                currentActiveRole = 1;
+                launchDashboard("🌐 GLOBAL ADMIN (Editor)", false, false);
+            } 
+            else if (pass === passSuper) {
+                if(prompt("🔒 Enter Code 1:") === "2012" && prompt("🔒 Enter Code 2:") === "17") {
+                    currentActiveRole = 2; launchDashboard("💻 SUPER ADMIN (Master)", true, false);
+                } else showToast("Secret Code Failed!", "error");
+            } 
+            else if (pass === passGod) {
+                if(prompt("🔒 Enter Code 1:") === "2012" && prompt("🔒 Enter Code 2:") === "17") {
+                    currentActiveRole = 3; document.body.classList.add('god-mode'); 
+                    launchDashboard("⚡ MASTER ANALYTICS (God Mode)", true, true);
+                } else showToast("Secret Code Failed!", "error");
+            } 
+            else {
+                document.getElementById('passwordError').style.display = 'block';
+                inputEl.classList.add('error'); setTimeout(() => inputEl.classList.remove('error'), 500);
+            }
+        }
+
+        function launchDashboard(title, showMasterMerge, isGod) {
+            document.getElementById('passwordScreen').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            
+            document.getElementById('admin-title').innerText = title;
+            document.getElementById('master-merge-area').className = showMasterMerge ? "mt-4 pt-4 border-t border-emerald-900" : "hidden";
+            document.getElementById('god-mode-tools').className = isGod ? "editor-section" : "hidden";
+            
+            renderAdminEditor();
+            renderClassesAdmin(); // Setup Class UI
+            showToast("Access Granted.", "success");
+        }
+
+        function changeAdminPassword() {
+            let newPass = document.getElementById('new-password-input').value.trim();
+            if (newPass.length > 0) {
+                if (currentActiveRole === 1) localStorage.setItem('pass_global', newPass);
+                else if (currentActiveRole === 2) localStorage.setItem('pass_super', newPass);
+                else if (currentActiveRole === 3) localStorage.setItem('pass_god', newPass);
+                document.getElementById('new-password-input').value = "";
+                showToast("Password Updated!", "success");
+            }
+        }
+
+        // ==========================================
+        // 5. CLASS MANAGEMENT (ADMIN)
+        // ==========================================
+        function renderClassesAdmin() {
+            let container = document.getElementById('class-list');
+            container.innerHTML = '';
+            availableClasses.forEach((cls, index) => {
+                container.innerHTML += `
+                    <div class="flex items-center bg-gray-800 rounded px-3 py-1 text-sm border border-gray-600">
+                        <span class="font-bold text-gray-200">${cls}</span>
+                        <button class="ml-3 text-red-400 hover:text-red-300" onclick="removeClass(${index})"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function addNewClass() {
+            let input = document.getElementById('new-class-input');
+            let val = input.value.trim();
+            if(val && !availableClasses.includes(val)) {
+                availableClasses.push(val);
+                localStorage.setItem('evm_classes', JSON.stringify(availableClasses));
+                input.value = '';
+                renderClassesAdmin();
+                populateClassDropdown();
+                showToast("Class added!", "success");
+            } else if (availableClasses.includes(val)) {
+                showToast("Class already exists!", "error");
+            }
+        }
+
+        function removeClass(index) {
+            if(confirm("Remove this class?")) {
+                availableClasses.splice(index, 1);
+                localStorage.setItem('evm_classes', JSON.stringify(availableClasses));
+                renderClassesAdmin();
+                populateClassDropdown();
+                showToast("Class removed!", "success");
+            }
+        }
+
+        // ==========================================
+        // 6. MASTER MERGE (DATA SYNC)
+        // ==========================================
+        function generateExportCode() {
+            let secretCode = btoa(JSON.stringify(electionData));
+            prompt("Copy this code and paste it in the Master PC:", secretCode); 
+        }
+
+        function mergeIncomingData() {
+            let code = document.getElementById('sync-code-box').value.trim();
+            if(!code) return;
+            if(usedSyncCodes.includes(code)) {
+                showToast("FRAUD ALERT: Code already merged!", "error");
+                document.getElementById('sync-code-box').value = ""; return;
+            }
+            try {
+                let incomingData = JSON.parse(atob(code));
+                for (let post in electionData) {
+                    if(incomingData[post]) {
+                        for(let i=0; i < electionData[post].length; i++) {
+                            if(incomingData[post][i]) electionData[post][i].votes += incomingData[post][i].votes;
+                        }
+                    }
+                }
+                usedSyncCodes.push(code); localStorage.setItem('used_sync_codes', JSON.stringify(usedSyncCodes));
+                localStorage.setItem('mega_evm_data', JSON.stringify(electionData));
+                document.getElementById('sync-code-box').value = ""; 
+                showToast("Data Merged Successfully!", "success");
+                renderAdminEditor(); 
+            } catch(e) { showToast("Invalid Code Format!", "error"); }
+        }
+
+        // ==========================================
+        // 7. ADMIN EDITOR & SAVING
+        // ==========================================
+        function renderAdminEditor() {
+            let container = document.getElementById('admin-editor-container');
+            container.innerHTML = "";
+
+            for (let post in electionData) {
+                let maxVotes = 0; electionData[post].forEach(c => { if(c.votes > maxVotes) maxVotes = c.votes; });
+                if(maxVotes === 0) maxVotes = 1; 
+
+                let section = document.createElement('div');
+                section.className = 'editor-section';
+                section.innerHTML = `<h4 class="font-bold text-blue-400 mb-3">${post}</h4>`;
+
+                electionData[post].forEach((candidate, index) => {
+                    let row = document.createElement('div');
+                    row.className = 'editor-row';
+                    let percentage = (candidate.votes / maxVotes) * 100;
+                    
+                    row.innerHTML = `
+                        <input type="text" id="name-${post}-${index}" value="${candidate.name}" placeholder="Name" style="flex: 1; min-width: 150px;">
+                        <input type="text" id="img-${post}-${index}" value="${candidate.image || ''}" placeholder="Image URL (Optional)" style="flex: 1; min-width: 150px;">
+                        <input type="number" id="vote-${post}-${index}" class="vote-input" value="${candidate.votes}">
+                        <button class="btn-outline" style="color: #ef4444; padding: 6px 12px;" onclick="removeCandidate('${post}', ${index})"><i class="fa-solid fa-trash"></i></button>
+                        <div class="progress-bar-container"><div class="progress-bar" id="bar-${post}-${index}" style="width: ${percentage}%"></div></div>
+                    `;
+                    section.appendChild(row);
+                });
+
+                section.innerHTML += `<button class="btn-outline text-xs mt-2" onclick="addCandidate('${post}')"><i class="fa-solid fa-plus mr-2"></i>Add Row</button>`;
+                container.appendChild(section);
+            }
+        }
+
+        function saveAdminChanges() {
+            for (let post in electionData) {
+                electionData[post].forEach((candidate, index) => {
+                    let newNameObj = document.getElementById(`name-${post}-${index}`);
+                    let newVoteObj = document.getElementById(`vote-${post}-${index}`);
+                    let newImgObj = document.getElementById(`img-${post}-${index}`);
+                    if(newNameObj) electionData[post][index].name = newNameObj.value;
+                    if(newVoteObj) electionData[post][index].votes = parseInt(newVoteObj.value) || 0;
+                    if(newImgObj) electionData[post][index].image = newImgObj.value.trim();
+                });
+            }
+            localStorage.setItem('mega_evm_data', JSON.stringify(electionData));
+            showToast("Database Saved!", "success");
+            renderAdminEditor(); 
+        }
+
+        function addCandidate(post) {
+            electionData[post].push({ name: "New", votes: 0, image: "" });
+            renderAdminEditor();
+        }
+
+        function removeCandidate(post, index) {
+            if(confirm("Delete this?")) {
+                electionData[post].splice(index, 1); renderAdminEditor();
+            }
+        }
+
+        function resetAllVotes() {
+            if(confirm("WARNING: Set all votes to 0?")) {
+                for (let post in electionData) { electionData[post].forEach(c => c.votes = 0); }
+                usedSyncCodes = []; localStorage.setItem('used_sync_codes', JSON.stringify(usedSyncCodes));
+                localStorage.setItem('mega_evm_data', JSON.stringify(electionData));
+                saveAdminChanges();
+            }
+        }
+
+        function highlightWinners() {
+            for (let post in electionData) {
+                let maxVotes = -1, winnerIndex = -1;
+                electionData[post].forEach((c, i) => { if(c.votes > maxVotes) { maxVotes = c.votes; winnerIndex = i; } });
+                if(winnerIndex > -1 && maxVotes > 0) {
+                    document.getElementById(`bar-${post}-${winnerIndex}`).style.background = "#fff";
+                    document.getElementById(`name-${post}-${winnerIndex}`).style.background = "#0f0";
+                    document.getElementById(`name-${post}-${winnerIndex}`).style.color = "#000";
+                }
+            }
+        }
+
+        // Initialize
+        showScreen('posts');
+        populateClassDropdown();
+    </script>
+</body>
+</html>
